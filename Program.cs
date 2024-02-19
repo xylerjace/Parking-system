@@ -28,31 +28,27 @@ namespace Parking
                 brand = Console.ReadLine();
             } while (string.IsNullOrWhiteSpace(brand));
 
-            Vehicle vehicle = null;
+          
 
             switch (type)
             {
                 case 1:
-                    vehicle = new Motorcycle(plateNo, brand);
+                    Motorcycle motor = new Motorcycle(plateNo, brand);
+                    HandleVehicle(motor);
                     break;
 
                 case 2:
-                    vehicle = new SuvVan(plateNo, brand);
+                    SuvVan suv = new SuvVan(plateNo, brand);
+                    HandleVehicle(suv);
                     break;
 
                 case 3:
-                    vehicle = new Sedan(plateNo, brand);
+                    Sedan sedan = new Sedan(plateNo, brand);
+                    HandleVehicle(sedan);
                     break;
             }
 
-            if (vehicle != null)
-            {
-                HandleVehicle(vehicle);
-            }
-            else
-            {
-                Console.WriteLine("Invalid option.");
-            }
+           
         }
 
         static void HandleVehicle(Vehicle vehicle)
@@ -73,7 +69,7 @@ namespace Parking
             vehicle.setParkOut(parkOut);
 
             TimeSpan duration = vehicle.getTotalDuration();
-            int totalHours = (int)Math.Ceiling(duration.TotalHours); // Round up total hours
+            int totalHours = (int)Math.Ceiling(duration.TotalHours); 
             Console.WriteLine("Parking time: " + totalHours + " Hours");
             Console.WriteLine("Amount: $" + vehicle.calculatePrice(totalHours));
         }
