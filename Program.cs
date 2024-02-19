@@ -6,68 +6,96 @@ namespace Parking
     {
         static void Main(string[] args)
         {
-            Console.Write("Enter Plate Number: ");
-            string plateNo = Console.ReadLine();
-            Console.Write("Enter Vehicle type:\n[1]Motorcyle\n[2]Suv/Van\n[3]Sedan\n\nOption: ");
-            int type = Convert.ToInt16(Console.ReadLine());
-            Console.Write("Enter vehicle brand: ");
-            string brand = Console.ReadLine();
+            string plateNo, brand;
+            string typeStr;
+            int type;
+
+            do
+            {
+                Console.Write("Enter Plate Number: ");
+                plateNo = Console.ReadLine();
+            } while (string.IsNullOrWhiteSpace(plateNo));
+
+            do
+            {
+                Console.Write("Enter Vehicle type:\n[1] Motorcycle\n[2] Suv/Van\n[3] Sedan\n\nOption: ");
+                typeStr = Console.ReadLine();
+            } while (!int.TryParse(typeStr, out type) || type < 1 || type > 3);
+
+            do
+            {
+                Console.Write("Enter vehicle brand: ");
+                brand = Console.ReadLine();
+            } while (string.IsNullOrWhiteSpace(brand));
+
+            Vehicle vehicle = null;
 
             switch (type)
             {
                 case 1:
-                    Motorcycle motorcycle = new Motorcycle(plateNo, brand);
-                    HandleVehicle(motorcycle);
+                    vehicle = new Motorcycle(plateNo, brand);
                     break;
 
                 case 2:
-                    SuvVan suvVan = new SuvVan(plateNo, brand);
-                    HandleVehicle(suvVan);
+                    vehicle = new SuvVan(plateNo, brand);
                     break;
 
                 case 3:
-                    Sedan sedan = new Sedan(plateNo, brand);
-                    HandleVehicle(sedan);
+                    vehicle = new Sedan(plateNo, brand);
                     break;
+            }
 
-                default:
-                    Console.WriteLine("Invalid option.");
-                    break;
+            if (vehicle != null)
+            {
+                HandleVehicle(vehicle);
+            }
+            else
+            {
+                Console.WriteLine("Invalid option.");
             }
         }
 
         static void HandleVehicle(Vehicle vehicle)
         {
-            Console.WriteLine("Plate No: " + vehicle.plateNo);
-            Console.WriteLine("Type: " + vehicle.type);
-            Console.WriteLine("Brand: " + vehicle.brand);
+            Console.WriteLine("Plate No: " + vehicle.PlateNo);
+            Console.WriteLine("Type: " + vehicle.Type);
+            Console.WriteLine("Brand: " + vehicle.Brand);
             Console.WriteLine("Park In: " + vehicle.getParkIn());
 
             Console.WriteLine("-----------PARKOUT --------");
-            Console.Write("Date Timein/parkIn:  " + vehicle.getParkIn());
-            Console.Write("\nParkout(MM/dd/yyyy HH:mm:ss pm/am): ");
-            DateTime parkOut = Convert.ToDateTime(Console.ReadLine());
+
+            DateTime parkOut;
+            do
+            {
+                Console.Write("Parkout (MM/dd/yyyy HH:mm:ss tt): ");
+            } while (!DateTime.TryParse(Console.ReadLine(), out parkOut));
+
             vehicle.setParkOut(parkOut);
 
             TimeSpan duration = vehicle.getTotalDuration();
-            int totalHours = duration.Hours;
+            int totalHours = (int)Math.Ceiling(duration.TotalHours); // Round up total hours
             Console.WriteLine("Parking time: " + totalHours + " Hours");
-            Console.WriteLine("Amount: " + vehicle.calculatePrice(totalHours));
+            Console.WriteLine("Amount: $" + vehicle.calculatePrice(totalHours));
         }
     }
 
-    abstract class Vehicle
+    // Base Vehicle class
+    public class Vehicle
     {
-        public string plateNo;
-        public string type;
-        public string brand;
+        public string PlateNo { get; set; }
+        public string Type { get; set; }
+        public string Brand { get; set; }
+        public DateTime Parkout { get; set; }
+        public int Additional { get; set; }
+        public int FlagDown { get; set; }
 
-        // Constructor
-        public Vehicle(string plateNo, string type, string brand)
+        public Vehicle(string plateNo, string type, string brand, int additional, int flagDown)
         {
-            this.plateNo = plateNo;
-            this.type = type;
-            this.brand = brand;
+            PlateNo = plateNo;
+            Type = type;
+            Brand = brand;
+            Additional = additional;
+            FlagDown = flagDown;
         }
 
         public DateTime getParkIn()
@@ -75,66 +103,34 @@ namespace Parking
             return DateTime.Now;
         }
 
-        public abstract TimeSpan getTotalDuration();
-        public abstract int calculatePrice(int hours);
-        public abstract void setParkOut(DateTime parkout);
+        public TimeSpan getTotalDuration() => Parkout - getParkIn();
+
+        public void setParkOut(DateTime parkout) => Parkout = parkout;
+
+        public int calculatePrice(int hours) => (hours * Additional) + FlagDown;
     }
 
+    // Derived Motorcycle class
     class Motorcycle : Vehicle
     {
-        int flagDown = 20;
-        int additional = 5;
-        DateTime parkOut;
-
-        public Motorcycle(string plateNo, string brand) : base(plateNo, "Motorcycle", brand)
+        public Motorcycle(string plateNo, string brand) : base(plateNo, "Motorcycle", brand, 5, 20)
         {
         }
-
-        public override TimeSpan getTotalDuration() => parkOut - getParkIn();
-
-
-        public override void setParkOut(DateTime parkout) => this.parkOut = parkout;
-
-
-        public override int calculatePrice(int hours) => (hours * additional) + flagDown;
-
     }
 
+    // Derived SuvVan class
     class SuvVan : Vehicle
     {
-        int flagDown = 40;
-        int additional = 20;
-        DateTime parkOut;
-
-        public SuvVan(string plateNo, string brand) : base(plateNo, "Suv/Van", brand)
+        public SuvVan(string plateNo, string brand) : base(plateNo, "Suv/Van", brand, 20, 40)
         {
         }
-
-        public override TimeSpan getTotalDuration() => parkOut - getParkIn();
-
-
-        public override void setParkOut(DateTime parkout) => this.parkOut = parkout;
-
-
-        public override int calculatePrice(int hours) => (hours * additional) + flagDown;
     }
 
+    // Derived Sedan class
     class Sedan : Vehicle
     {
-        int flagDown = 30;
-        int additional = 15;
-        DateTime parkOut;
-
-        public Sedan(string plateNo, string brand) : base(plateNo, "Sedan", brand)
+        public Sedan(string plateNo, string brand) : base(plateNo, "Sedan", brand, 15, 30)
         {
         }
-
-        public override TimeSpan getTotalDuration() => parkOut - getParkIn();
-
-
-        public override void setParkOut(DateTime parkout) => this.parkOut = parkout;
-
-
-        public override int calculatePrice(int hours) => (hours * additional) + flagDown;
     }
 }
